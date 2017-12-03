@@ -4,6 +4,7 @@ extern "C"
 #include <GL/glew.h>
 //#include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <GLFW/glfw3native.h>
 }
 
 class MainWindow
@@ -36,8 +37,10 @@ private:
     int             mWinHeight  = 480;              // 窗口高度
     GLFWwindow*     mWindow     = NULL;             // 窗体
     bool            run         = false;            // 是否运行
-    GLuint          vao, vbo;
-    GLuint          program;
+    GLuint          vao, vbo, cbo, uvbo;
+    GLuint          programID;
+    GLuint          textureID;
+    GLuint          MatrixID;
     GLint           mvp_location, vpos_location, vcol_location;
     GLuint          displayList;
 };

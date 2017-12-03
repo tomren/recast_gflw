@@ -1,14 +1,106 @@
 #include "main_window.hpp"
 #include "input/input_mgr.hpp"
 #include "shader/shader_mgr.hpp"
+#include "texture/texture.hpp"
 #include <stdio.h>
 
-float points[] = {
-    0.0f,  0.5f,  0.0f,
-    0.5f, -0.5f,  0.0f,
-    -0.5f, -0.5f,  0.0f
+//float vectorBuffer[] =
+//{
+//    0.0f,  0.5f,  0.0f,
+//    0.5f, -0.5f,  0.0f,
+//    -0.5f, -0.5f,  0.0f
+//};
+//
+//float colorBuffer[] =
+//{
+//    0.583f,  0.771f,  0.014f,
+//    0.609f,  0.115f,  0.436f,
+//    0.327f,  0.483f,  0.844f
+//};
+
+float vectorBuffer[] =
+{
+    -1.0f,-1.0f,-1.0f, // triangle 1 : begin
+    -1.0f,-1.0f, 1.0f,
+    -1.0f, 1.0f, 1.0f, // triangle 1 : end
+    1.0f, 1.0f,-1.0f, // triangle 2 : begin
+    -1.0f,-1.0f,-1.0f,
+    -1.0f, 1.0f,-1.0f, // triangle 2 : end
+    1.0f,-1.0f, 1.0f,
+    -1.0f,-1.0f,-1.0f,
+    1.0f,-1.0f,-1.0f,
+    1.0f, 1.0f,-1.0f,
+    1.0f,-1.0f,-1.0f,
+    -1.0f,-1.0f,-1.0f,
+    -1.0f,-1.0f,-1.0f,
+    -1.0f, 1.0f, 1.0f,
+    -1.0f, 1.0f,-1.0f,
+    1.0f,-1.0f, 1.0f,
+    -1.0f,-1.0f, 1.0f,
+    -1.0f,-1.0f,-1.0f,
+    -1.0f, 1.0f, 1.0f,
+    -1.0f,-1.0f, 1.0f,
+    1.0f,-1.0f, 1.0f,
+    1.0f, 1.0f, 1.0f,
+    1.0f,-1.0f,-1.0f,
+    1.0f, 1.0f,-1.0f,
+    1.0f,-1.0f,-1.0f,
+    1.0f, 1.0f, 1.0f,
+    1.0f,-1.0f, 1.0f,
+    1.0f, 1.0f, 1.0f,
+    1.0f, 1.0f,-1.0f,
+    -1.0f, 1.0f,-1.0f,
+    1.0f, 1.0f, 1.0f,
+    -1.0f, 1.0f,-1.0f,
+    -1.0f, 1.0f, 1.0f,
+    1.0f, 1.0f, 1.0f,
+    -1.0f, 1.0f, 1.0f,
+    1.0f,-1.0f, 1.0f
 };
 
+float uvBuffer[] =
+{
+    0.000059f, 1.0f - 0.000004f,
+    0.000103f, 1.0f - 0.336048f,
+    0.335973f, 1.0f - 0.335903f,
+    1.000023f, 1.0f - 0.000013f,
+    0.667979f, 1.0f - 0.335851f,
+    0.999958f, 1.0f - 0.336064f,
+    0.667979f, 1.0f - 0.335851f,
+    0.336024f, 1.0f - 0.671877f,
+    0.667969f, 1.0f - 0.671889f,
+    1.000023f, 1.0f - 0.000013f,
+    0.668104f, 1.0f - 0.000013f,
+    0.667979f, 1.0f - 0.335851f,
+    0.000059f, 1.0f - 0.000004f,
+    0.335973f, 1.0f - 0.335903f,
+    0.336098f, 1.0f - 0.000071f,
+    0.667979f, 1.0f - 0.335851f,
+    0.335973f, 1.0f - 0.335903f,
+    0.336024f, 1.0f - 0.671877f,
+    1.000004f, 1.0f - 0.671847f,
+    0.999958f, 1.0f - 0.336064f,
+    0.667979f, 1.0f - 0.335851f,
+    0.668104f, 1.0f - 0.000013f,
+    0.335973f, 1.0f - 0.335903f,
+    0.667979f, 1.0f - 0.335851f,
+    0.335973f, 1.0f - 0.335903f,
+    0.668104f, 1.0f - 0.000013f,
+    0.336098f, 1.0f - 0.000071f,
+    0.000103f, 1.0f - 0.336048f,
+    0.000004f, 1.0f - 0.671870f,
+    0.336024f, 1.0f - 0.671877f,
+    0.000103f, 1.0f - 0.336048f,
+    0.336024f, 1.0f - 0.671877f,
+    0.335973f, 1.0f - 0.335903f,
+    0.667969f, 1.0f - 0.671889f,
+    1.000004f, 1.0f - 0.671847f,
+    0.667979f, 1.0f - 0.335851f
+};
+
+// ==================================================
+// 构造函数
+// ==================================================
 MainWindow::MainWindow()
 {
 
@@ -78,7 +170,8 @@ int MainWindow::Init()
 
     Load3DData();
 
-    program = ShaderMgr::CreateShader();
+    programID = ShaderMgr::CreateShader();
+    GLuint MatrixID = glGetUniformLocation(programID, "MVP");
 
     return 0;
 }
@@ -107,7 +200,20 @@ void MainWindow::Load3DData()
     // 创建顶点缓冲对象
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vectorBuffer), vectorBuffer, GL_STATIC_DRAW);
+
+    // 创建颜色缓冲对象
+    //glGenBuffers(1, &cbo);
+    //glBindBuffer(GL_ARRAY_BUFFER, cbo);
+    //glBufferData(GL_ARRAY_BUFFER, sizeof(colorBuffer), colorBuffer, GL_STATIC_DRAW);
+
+    // uv 缓冲区对象
+    glGenBuffers(1, &uvbo);
+    glBindBuffer(GL_ARRAY_BUFFER, uvbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(uvBuffer), uvBuffer, GL_STATIC_DRAW);
+
+    // 创建贴图对象
+    textureID = loadDDS("1.dds");
 }
 
 // ==================================================
@@ -147,13 +253,33 @@ void MainWindow::Update()
         glClearColor(0.0, 0.0, 0.0, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glUseProgram(program);
+        // 使用 shader
+        glUseProgram(programID);
 
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        glUniform1i(textureID, 0);
+
+        // 启用定点属性
         glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        // 启用颜色属性
+        //glEnableVertexAttribArray(1);
+        //glBindBuffer(GL_ARRAY_BUFFER, cbo);
+        //glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+        glEnableVertexAttribArray(1);
+        glBindBuffer(GL_ARRAY_BUFFER, uvbo);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+        // 绘制三角形
+        glDrawArrays(GL_TRIANGLES, 0, 12*3);
+
+        // 关闭属性
         glDisableVertexAttribArray(0);
+        glDisableVertexAttribArray(1);
 
         // 交换缓冲区
         glfwSwapBuffers(mWindow);

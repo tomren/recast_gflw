@@ -25,12 +25,14 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/src SRC_MAIN)
 aux_source_directory(${PROJECT_SOURCE_DIR}/src/framework SRC_FRAMEWORK)
 aux_source_directory(${PROJECT_SOURCE_DIR}/src/input SRC_INPUT)
 aux_source_directory(${PROJECT_SOURCE_DIR}/src/shader SRC_SHADER)
+aux_source_directory(${PROJECT_SOURCE_DIR}/src/texture SRC_TEXTURE)
 
 set (SOURCE_CODE 
     ${SRC_MAIN}
     ${SRC_FRAMEWORK}
     ${SRC_INPUT}
     ${SRC_SHADER}
+    ${SRC_TEXTURE}
     )
 
 # LIBORARY
